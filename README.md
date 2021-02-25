@@ -1,7 +1,15 @@
 # starterPack
-Template to start new project.
+
+Шаблон для начала нового проекта
 
 
-# To start
+## 
 
 - Type `npm i`
+
+
+## Для обновления паектов
+
+- `sudo npm i -g npm-check-updates`
+- `ncu -u`
+- `npm i`
