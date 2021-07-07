@@ -32,7 +32,7 @@ let { src, dest } = require("gulp"),
   browsersync = require("browser-sync").create(),
   fileinclude = require("gulp-file-include"),
   del = require("del"),
-  scss = require("gulp-sass"),
+  scss = require("gulp-sass")(require('sass')),
   autoprefixer = require("gulp-autoprefixer"),
   group_media = require("gulp-group-css-media-queries"),
   clean_css = require("gulp-clean-css"),
@@ -44,9 +44,11 @@ let { src, dest } = require("gulp"),
   ttf2woff2 = require("gulp-ttf2woff2"),
   fonter = require("gulp-fonter"),
   ghPages = require("gh-pages"),
-  paths = require("path");
+  paths = require("path"),
+  babel = require('gulp-babel'),
+  newer = require('gulp-newer');
 
-function browserSync(params) {
+function browserSync() {
   browsersync.init({
     server: {
       baseDir: "./" + project_folder + "/",
@@ -75,6 +77,7 @@ function css() {
       autoprefixer({
         overrideBrowserslist: ["last 5 versions"],
         cascade: true,
+        grid: true
       })
     )
     .pipe(dest(path.build.css))
@@ -91,6 +94,9 @@ function css() {
 function js() {
   return src(path.src.js)
     .pipe(fileinclude())
+    .pipe(babel({
+      presets: ['@babel/env']
+    }))
     .pipe(dest(path.build.js))
     .pipe(uglify())
     .pipe(
@@ -105,6 +111,7 @@ function js() {
 function images() {
   return src(path.src.img)
     .pipe(src(path.src.img))
+    .pipe(newer(path.build.img))
     .pipe(
       imagemin({
         progressive: true,
@@ -152,47 +159,41 @@ gulp.task("svgSprite", function () {
     .pipe(dest(path.build.img));
 });
 
-function fontsStyle(params) {
-  let file_content = fs.readFileSync(source_folder + "/scss/fonts.scss");
-  if (file_content == "") {
-    fs.writeFile(source_folder + "/scss/fonts.scss", "", cb);
+function fontsStyle() {
+
+  let file_content = fs.readFileSync(source_folder + '/scss/fonts.scss');
+  if (file_content == '') {
+    fs.writeFile(source_folder + '/scss/fonts.scss', '', cb);
     return fs.readdir(path.build.fonts, function (err, items) {
       if (items) {
         let c_fontname;
         for (var i = 0; i < items.length; i++) {
-          let fontname = items[i].split(".");
+          let fontname = items[i].split('.');
           fontname = fontname[0];
           if (c_fontname != fontname) {
-            fs.appendFile(
-              source_folder + "/scss/fonts.scss",
-              '@include font("' +
-              fontname +
-              '", "' +
-              fontname +
-              '", "400", "normal");\r\n',
-              cb
-            );
+            fs.appendFile(source_folder + '/scss/fonts.scss', '@include font("' + fontname + '", "' + fontname + '", "400", "normal");\r\n', cb);
           }
           c_fontname = fontname;
         }
       }
-    });
+    })
   }
 }
+
 function cb() { }
 
 function deploy(cb) {
-  ghPages.publish(paths.join(process.cwd(), "./build"), cb);
+  ghPages.publish(paths.join(process.cwd(), "./" + project_folder), cb);
 }
 
-function watchFiles(params) {
+function watchFiles() {
   gulp.watch([path.watch.html], html);
   gulp.watch([path.watch.css], css);
   gulp.watch([path.watch.js], js);
   gulp.watch([path.watch.img], images);
 }
 
-function clean(params) {
+function clean() {
   return del(path.clean);
 }
 
