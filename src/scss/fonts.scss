@@ -1,0 +1,6 @@
+@import "mixins";
+
+@include font("TTNorms", "TTNorms-Bold", "700", "normal");
+@include font("TTNorms", "TTNorms-Light", "300", "normal");
+@include font("TTNorms", "TTNorms-Medium", "500", "normal");
+@include font("TTNorms", "TTNorms-Regular", "400", "normal");
